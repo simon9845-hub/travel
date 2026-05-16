@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>旅遊求助卡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F0E8;
+    --card-bg: #FFFDF8;
+    --accent: #C8502A;
+    --accent-light: #F5E8E2;
+    --text: #2A2016;
+    --text-muted: #8A7A6A;
+    --border: #E2D8CE;
+    --tag-toilet: #3B6D11;
+    --tag-transit: #185FA5;
+    --tag-food: #854F0B;
+    --tag-shop: #533AB7;
+    --tag-medical: #A32D2D;
+    --shadow: 0 2px 12px rgba(42,32,22,0.08);
+  }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 2rem;
+  }
+
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 1.25rem 1.25rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  header h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  header p {
+    font-size: 0.75rem;
+    opacity: 0.85;
+    margin-top: 0.2rem;
+  }
+
+  .category-bar {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.75rem 1rem;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .category-bar::-webkit-scrollbar { display: none; }
+
+  .cat-btn {
+    flex-shrink: 0;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .cat-btn.active, .cat-btn:active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .section {
+    padding: 0 1rem;
+    margin-top: 1.25rem;
+  }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.6rem;
+    padding-left: 0.1rem;
+  }
+
+  .phrase-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.65rem;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.12s, box-shadow 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .phrase-card:active {
+    transform: scale(0.975);
+    box-shadow: none;
+  }
+
+  .phrase-icon {
+    font-size: 1.6rem;
+    width: 2.4rem;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .phrase-content { flex: 1; min-width: 0; }
+
+  .phrase-zh {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .phrase-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+  }
+
+  .phrase-arrow {
+    color: var(--accent);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    margin-right: 0.3rem;
+    margin-top: 0.35rem;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(42,32,22,0.55);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card-bg);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 0 0 2rem;
+    animation: slideUp 0.25s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(60px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0.75rem auto 0;
+  }
+
+  .modal-header {
+    padding: 0.85rem 1.25rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-zh {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .lang-block {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s;
+    position: relative;
+  }
+  .lang-block:last-child { border-bottom: none; }
+  .lang-block:active { background: var(--accent-light); }
+  .lang-block.copied { background: #EAF3DE; }
+
+  .lang-left {
+    flex-shrink: 0;
+    width: 2.6rem;
+    text-align: center;
+  }
+  .lang-flag { font-size: 1.7rem; line-height: 1; }
+  .lang-name {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+  }
+  .lang-right { flex: 1; min-width: 0; }
+  .lang-phrase {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.45;
+  }
+  .lang-romanize {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+    font-style: italic;
+  }
+  .copy-tick {
+    font-size: 1.1rem;
+    color: #3B6D11;
+    font-weight: 700;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .lang-block.copied .copy-tick { opacity: 1; }
+
+  .close-btn {
+    width: calc(100% - 2.5rem);
+    margin: 0.5rem 1.25rem 0;
+    padding: 0.85rem;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  /* hidden sections via filter */
+  .section[data-cat].hidden { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗺 旅遊求助卡</h1>
+  <p>找到需要的句子，點下去出示給當地人看</p>
+</header>
+
+<div class="category-bar">
+  <button class="cat-btn active" onclick="filterCat('all', this)">全部</button>
+  <button class="cat-btn" onclick="filterCat('toilet', this)">🚻 廁所</button>
+  <button class="cat-btn" onclick="filterCat('transit', this)">🚌 交通</button>
+  <button class="cat-btn" onclick="filterCat('food', this)">🍜 飲食</button>
+  <button class="cat-btn" onclick="filterCat('shop', this)">🛍 購物</button>
+  <button class="cat-btn" onclick="filterCat('medical', this)">🏥 醫療</button>
+</div>
+
+<!-- ======= 廁所 ======= -->
+<div class="section" data-cat="toilet">
+  <div class="section-label">🚻 廁所 / 緊急</div>
+
+  <div class="phrase-card" onclick="openModal('toilet1')">
+    <div class="phrase-icon">🚻</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">廁所在哪裡？</div>
+      <div class="phrase-sub">最常用・緊急必備</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('toilet2')">
+    <div class="phrase-icon">🆘</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">我很緊急，請快點告訴我廁所在哪</div>
+      <div class="phrase-sub">緊急狀況用</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('toilet3')">
+    <div class="phrase-icon">🔑</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">廁所需要付費嗎？</div>
+      <div class="phrase-sub">歐洲特別常用</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+</div>
+
+<!-- ======= 交通 ======= -->
+<div class="section" data-cat="transit">
+  <div class="section-label">🚌 交通 / 迷路</div>
+
+  <div class="phrase-card" onclick="openModal('transit1')">
+    <div class="phrase-icon">🏨</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">我迷路了，請幫我叫計程車回飯店</div>
+      <div class="phrase-sub">出示飯店名片一起使用</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('transit2')">
+    <div class="phrase-icon">🚉</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">這附近有地鐵站 / 捷運站嗎？</div>
+      <div class="phrase-sub">找大眾交通工具</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('transit3')">
+    <div class="phrase-icon">📞</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">可以幫我打這個電話號碼嗎？</div>
+      <div class="phrase-sub">請對方幫忙撥電話給家人</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('transit4')">
+    <div class="phrase-icon">✈️</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">去機場要怎麼搭車？</div>
+      <div class="phrase-sub">回程交通</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+</div>
+
+<!-- ======= 飲食 ======= -->
+<div class="section" data-cat="food">
+  <div class="section-label">🍜 飲食 / 點餐</div>
+
+  <div class="phrase-card" onclick="openModal('food1')">
+    <div class="phrase-icon">🥩</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">我不吃豬肉</div>
+      <div class="phrase-sub">飲食限制</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('food2')">
+    <div class="phrase-icon">🌶</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">請不要太辣</div>
+      <div class="phrase-sub">辣度調整</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('food3')">
+    <div class="phrase-icon">💧</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">請給我一杯水 / 熱水</div>
+      <div class="phrase-sub">基本需求</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('food4')">
+    <div class="phrase-icon">🧾</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">請給我帳單 / 結帳</div>
+      <div class="phrase-sub">用餐結束</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+</div>
+
+<!-- ======= 購物 ======= -->
+<div class="section" data-cat="shop">
+  <div class="section-label">🛍 購物 / 付款</div>
+
+  <div class="phrase-card" onclick="openModal('shop1')">
+    <div class="phrase-icon">💳</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">可以刷信用卡嗎？</div>
+      <div class="phrase-sub">付款方式確認</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('shop2')">
+    <div class="phrase-icon">🔄</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">這個可以退換貨嗎？</div>
+      <div class="phrase-sub">退換貨詢問</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('shop3')">
+    <div class="phrase-icon">📦</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">有沒有更大 / 更小的尺寸？</div>
+      <div class="phrase-sub">衣物購物常用</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+</div>
+
+<!-- ======= 醫療 ======= -->
+<div class="section" data-cat="medical">
+  <div class="section-label">🏥 醫療 / 身體不適</div>
+
+  <div class="phrase-card" onclick="openModal('medical1')">
+    <div class="phrase-icon">🤢</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">我身體不舒服，請幫我叫救護車</div>
+      <div class="phrase-sub">緊急醫療</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('medical2')">
+    <div class="phrase-icon">💊</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">附近有藥局嗎？</div>
+      <div class="phrase-sub">購買一般藥品</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+
+  <div class="phrase-card" onclick="openModal('medical3')">
+    <div class="phrase-icon">🩹</div>
+    <div class="phrase-content">
+      <div class="phrase-zh">我頭痛 / 肚子痛 / 發燒</div>
+      <div class="phrase-sub">症狀說明</div>
+    </div>
+    <div class="phrase-arrow">›</div>
+  </div>
+</div>
+
+<!-- ======= MODAL ======= -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-zh" id="modal-zh">句子</div>
+    </div>
+    <div id="modal-langs"></div>
+    <button class="close-btn" onclick="closeModal()">關閉</button>
+  </div>
+</div>
+
+<script>
+const phrases = {
+  toilet1: {
+    zh: "廁所在哪裡？",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "トイレはどこですか？", roman: "Toire wa doko desu ka?" },
+      { name: "🇰🇷 韓語", phrase: "화장실이 어디예요？", roman: "Hwa-jang-si-ri eo-di-ye-yo?" },
+      { name: "🌐 英語", phrase: "Where is the restroom / toilet?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Nasaan ang banyo?", roman: "Na-sa-an ang ban-yo?" },
+      { name: "🇮🇩 印尼語", phrase: "Di mana toilet / kamar kecil?", roman: "Di mana toilet?" },
+    ]
+  },
+  toilet2: {
+    zh: "我很緊急，請快點告訴我廁所在哪",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "急いでいます！トイレはどこですか？早く教えてください！", roman: "Isoide imasu! Toire wa doko desu ka? Hayaku oshiete kudasai!" },
+      { name: "🇰🇷 韓語", phrase: "급해요！화장실이 어디예요？빨리 알려주세요！", roman: "Geup-hae-yo! Hwa-jang-sil eodi-ye-yo? Ppalli allyeo juseyo!" },
+      { name: "🌐 英語", phrase: "It's urgent! Where is the toilet? Please hurry!", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Mahalaga ito! Nasaan ang banyo? Pakibilisan!", roman: "Nasa-an ang ban-yo? Paki-bi-li-san!" },
+      { name: "🇮🇩 印尼語", phrase: "Darurat! Di mana toilet? Cepat tolong kasih tahu!", roman: "Da-ru-rat! Di mana toilet?" },
+    ]
+  },
+  toilet3: {
+    zh: "廁所需要付費嗎？",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "トイレは有料ですか？", roman: "Toire wa yuuryou desu ka?" },
+      { name: "🇰🇷 韓語", phrase: "화장실은 유료인가요？", roman: "Hwa-jang-si-reun yu-ryo-in-ga-yo?" },
+      { name: "🌐 英語", phrase: "Is there a fee to use the toilet?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "May bayad ba ang banyo?", roman: "May ba-yad ba ang ban-yo?" },
+      { name: "🇮🇩 印尼語", phrase: "Apakah toilet ini berbayar?", roman: "A-pa-kah toilet ini ber-ba-yar?" },
+    ]
+  },
+  transit1: {
+    zh: "我迷路了，請幫我叫計程車回飯店",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "迷子になりました。このホテルまでタクシーを呼んでいただけますか？", roman: "Maigo ni narimashita. Kono hoteru made taxi wo yonde itadakemasu ka?" },
+      { name: "🇰🇷 韓語", phrase: "길을 잃었어요. 이 호텔까지 택시를 불러주시겠어요？", roman: "Gi-reul il-leo-sseo-yo. I ho-tel-kka-ji taek-si-reul bul-leo-ju-si-ge-sseo-yo?" },
+      { name: "🌐 英語", phrase: "I'm lost. Could you please help me get a taxi to this hotel?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Nawawala ako. Maaari mo akong tulungan na kumuha ng taxi papunta sa hotel na ito?", roman: "Na-wa-wa-la a-ko. Tu-lung-an mo a-ko ng taxi pa-pu-nta sa ho-tel." },
+      { name: "🇮🇩 印尼語", phrase: "Saya tersesat. Bisakah Anda bantu saya panggil taksi ke hotel ini?", roman: "Sa-ya ter-se-sat. Bi-sa ban-tu pa-nggil tak-si ke ho-tel ini?" },
+    ]
+  },
+  transit2: {
+    zh: "這附近有地鐵站 / 捷運站嗎？",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "この近くに地下鉄の駅はありますか？", roman: "Kono chikaku ni chikatetsu no eki wa arimasu ka?" },
+      { name: "🇰🇷 韓語", phrase: "근처에 지하철역이 있나요？", roman: "Geun-cheo-e ji-ha-cheol-yeog-i it-na-yo?" },
+      { name: "🌐 英語", phrase: "Is there a subway / metro station nearby?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "May malapit bang istasyon ng metro / tren?", roman: "May ma-la-pit bang is-tas-yon ng me-tro?" },
+      { name: "🇮🇩 印尼語", phrase: "Apakah ada stasiun MRT / kereta terdekat?", roman: "A-pa-kah ada sta-si-un MRT ter-de-kat?" },
+    ]
+  },
+  transit3: {
+    zh: "可以幫我打這個電話號碼嗎？",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "この電話番号に電話してもらえますか？", roman: "Kono denwa bangou ni denwa shite moraemasu ka?" },
+      { name: "🇰🇷 韓語", phrase: "이 전화번호로 전화해 주시겠어요？", roman: "I jeon-hwa-beon-ho-ro jeon-hwa-hae ju-si-ge-sseo-yo?" },
+      { name: "🌐 英語", phrase: "Could you please call this phone number for me?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Maaari mo bang tawagan ang numerong ito para sa akin?", roman: "Ma-a-a-ri mo bang ta-wa-gan ang nu-me-rong i-to?" },
+      { name: "🇮🇩 印尼語", phrase: "Bisakah Anda menelepon nomor ini untuk saya?", roman: "Bi-sa-kah Anda me-ne-le-pon no-mor ini un-tuk sa-ya?" },
+    ]
+  },
+  transit4: {
+    zh: "去機場要怎麼搭車？",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "空港へはどうやって行けますか？", roman: "Kuukou e wa dou yatte ikemasu ka?" },
+      { name: "🇰🇷 韓語", phrase: "공항에 어떻게 가면 돼요？", roman: "Gong-hang-e eo-tteo-ke ga-myeon dwae-yo?" },
+      { name: "🌐 英語", phrase: "How can I get to the airport from here?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Paano ako makakarating sa paliparan mula dito?", roman: "Pa-a-no a-ko ma-ka-ka-ra-ting sa pa-li-pa-ran?" },
+      { name: "🇮🇩 印尼語", phrase: "Bagaimana cara ke bandara dari sini?", roman: "Ba-gai-ma-na ca-ra ke ban-da-ra dari si-ni?" },
+    ]
+  },
+  food1: {
+    zh: "我不吃豬肉",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "豚肉は食べられません。", roman: "Butaniku wa taberaremasen." },
+      { name: "🇰🇷 韓語", phrase: "저는 돼지고기를 먹지 않아요.", roman: "Jeo-neun dwae-ji-go-gi-reul meok-ji a-na-yo." },
+      { name: "🌐 英語", phrase: "I don't eat pork.", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Hindi ako kumakain ng baboy.", roman: "Hin-di a-ko ku-ma-ka-in ng ba-boy." },
+      { name: "🇮🇩 印尼語", phrase: "Saya tidak makan daging babi.", roman: "Sa-ya ti-dak ma-kan da-ging ba-bi." },
+    ]
+  },
+  food2: {
+    zh: "請不要太辣",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "辛くしないでください。", roman: "Karaku shinaide kudasai." },
+      { name: "🇰🇷 韓語", phrase: "맵지 않게 해 주세요.", roman: "Maep-ji an-ke hae ju-se-yo." },
+      { name: "🌐 英語", phrase: "Please make it not spicy / mild, please.", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Pakihuwag gawing maanghang. Banayad lang po.", roman: "Pa-ki-hu-wag ma-ang-hang. Ba-na-yad lang." },
+      { name: "🇮🇩 印尼語", phrase: "Tolong jangan terlalu pedas.", roman: "To-long jan-gan ter-la-lu pe-das." },
+    ]
+  },
+  food3: {
+    zh: "請給我一杯水 / 熱水",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "お水をください。／お湯をください。", roman: "Omizu wo kudasai. / Oyu wo kudasai." },
+      { name: "🇰🇷 韓語", phrase: "물 한 잔 주세요. / 뜨거운 물 주세요.", roman: "Mul han jan ju-se-yo. / Tteu-geo-un mul ju-se-yo." },
+      { name: "🌐 英語", phrase: "Could I have a glass of water / hot water, please?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Puwede po bang humingi ng isang baso ng tubig / mainit na tubig?", roman: "Pu-we-de hu-min-gi ng tu-big / ma-i-nit na tu-big?" },
+      { name: "🇮🇩 印尼語", phrase: "Boleh minta segelas air putih / air panas?", roman: "Bo-leh min-ta air pu-tih / air pa-nas?" },
+    ]
+  },
+  food4: {
+    zh: "請給我帳單 / 結帳",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "お会計をお願いします。", roman: "Okaikei wo onegaishimasu." },
+      { name: "🇰🇷 韓語", phrase: "계산서 주세요. / 계산해 주세요.", roman: "Gye-san-seo ju-se-yo." },
+      { name: "🌐 英語", phrase: "Check, please. / Could we have the bill?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Pakibigay na ang bill / Magbabayad na po kami.", roman: "Pa-ki-bi-gay ang bill. Mag-ba-ba-yad na po." },
+      { name: "🇮🇩 印尼語", phrase: "Minta bon / tagihan sekarang, ya.", roman: "Min-ta bon / ta-gi-han se-ka-rang." },
+    ]
+  },
+  shop1: {
+    zh: "可以刷信用卡嗎？",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "クレジットカードは使えますか？", roman: "Kurejitto kaado wa tsukaemasu ka?" },
+      { name: "🇰🇷 韓語", phrase: "신용카드 돼요？", roman: "Shin-yong-ka-deu dwae-yo?" },
+      { name: "🌐 英語", phrase: "Do you accept credit cards?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Tumatanggap ba kayo ng credit card?", roman: "Tu-ma-tang-gap ba kayo ng credit card?" },
+      { name: "🇮🇩 印尼語", phrase: "Apakah bisa bayar dengan kartu kredit?", roman: "A-pa-kah bi-sa ba-yar de-ngan kar-tu kre-dit?" },
+    ]
+  },
+  shop2: {
+    zh: "這個可以退換貨嗎？",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "これは返品・交換できますか？", roman: "Kore wa henpin/koukan dekimasu ka?" },
+      { name: "🇰🇷 韓語", phrase: "이거 환불이나 교환이 가능한가요？", roman: "I-geo hwan-bul-i-na gyo-hwan-i ga-neung-han-ga-yo?" },
+      { name: "🌐 英語", phrase: "Can I return or exchange this?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Maaari ko bang ibalik o palitan ito?", roman: "Ma-a-a-ri ko bang i-ba-lik o pa-li-tan i-to?" },
+      { name: "🇮🇩 印尼語", phrase: "Apakah bisa dikembalikan atau ditukar?", roman: "A-pa-kah bi-sa di-kem-ba-li-kan atau di-tu-kar?" },
+    ]
+  },
+  shop3: {
+    zh: "有沒有更大 / 更小的尺寸？",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "もっと大きいサイズ／小さいサイズはありますか？", roman: "Motto ookii saizu / chiisai saizu wa arimasu ka?" },
+      { name: "🇰🇷 韓語", phrase: "더 큰 사이즈 / 작은 사이즈 있어요？", roman: "Deo keun sa-i-jeu / ja-geun sa-i-jeu i-sseo-yo?" },
+      { name: "🌐 英語", phrase: "Do you have a bigger size / smaller size?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Mayroon ba kayong mas malaki / mas maliit na sukat?", roman: "May-ro-on ba mas ma-la-ki / mas ma-li-it na su-kat?" },
+      { name: "🇮🇩 印尼語", phrase: "Ada ukuran yang lebih besar / lebih kecil?", roman: "A-da u-ku-ran yang le-bih be-sar / le-bih ke-cil?" },
+    ]
+  },
+  medical1: {
+    zh: "我身體不舒服，請幫我叫救護車",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "気分が悪いです。救急車を呼んでください！", roman: "Kibun ga warui desu. Kyuukyuusha wo yonde kudasai!" },
+      { name: "🇰🇷 韓語", phrase: "몸이 안 좋아요. 구급차를 불러주세요！", roman: "Mo-mi an jo-a-yo. Gu-geup-cha-reul bul-leo-ju-se-yo!" },
+      { name: "🌐 英語", phrase: "I feel very sick. Please call an ambulance!", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Hindi ako feeling well. Pakitawagan ang ambulansya!", roman: "Pa-ki-ta-wa-gan ang am-bu-lans-ya! Hin-di ako ma-bu-ti." },
+      { name: "🇮🇩 印尼語", phrase: "Saya tidak sehat. Tolong panggilkan ambulans!", roman: "Sa-ya ti-dak se-hat. To-long pang-gil am-bu-lans!" },
+    ]
+  },
+  medical2: {
+    zh: "附近有藥局嗎？",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "近くに薬局はありますか？", roman: "Chikaku ni yakkyoku wa arimasu ka?" },
+      { name: "🇰🇷 韓語", phrase: "근처에 약국이 있나요？", roman: "Geun-cheo-e yak-gug-i it-na-yo?" },
+      { name: "🌐 英語", phrase: "Is there a pharmacy nearby?", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "May malapit bang parmasya / botika?", roman: "May ma-la-pit bang par-mas-ya / bo-ti-ka?" },
+      { name: "🇮🇩 印尼語", phrase: "Apakah ada apotek di dekat sini?", roman: "A-pa-kah ada a-po-tek di de-kat si-ni?" },
+    ]
+  },
+  medical3: {
+    zh: "我頭痛 / 肚子痛 / 發燒",
+    langs: [
+      { name: "🇯🇵 日語", phrase: "頭が痛いです。／お腹が痛いです。／熱があります。", roman: "Atama ga itai. / Onaka ga itai. / Netsu ga arimasu." },
+      { name: "🇰🇷 韓語", phrase: "머리가 아파요. / 배가 아파요. / 열이 나요.", roman: "Meo-ri-ga a-pa-yo. / Bae-ga a-pa-yo. / Yeo-ri na-yo." },
+      { name: "🌐 英語", phrase: "I have a headache. / I have a stomachache. / I have a fever.", roman: "" },
+      { name: "🇵🇭 菲律賓語", phrase: "Masakit ang ulo ko. / Masakit ang tiyan ko. / May lagnat ako.", roman: "Ma-sa-kit ang u-lo. / Ma-sa-kit ang ti-yan. / May lag-nat ako." },
+      { name: "🇮🇩 印尼語", phrase: "Kepala saya sakit. / Perut saya sakit. / Saya demam.", roman: "Ke-pa-la sa-kit. / Pe-rut sa-kit. / Sa-ya de-mam." },
+    ]
+  },
+};
+
+function openModal(key) {
+  const data = phrases[key];
+  if (!data) return;
+  document.getElementById('modal-zh').textContent = data.zh;
+  const container = document.getElementById('modal-langs');
+  container.innerHTML = '';
+  data.langs.forEach((l, i) => {
+    const parts = l.name.split(' ');
+    const flag = parts[0];
+    const name = parts.slice(1).join(' ');
+    const div = document.createElement('div');
+    div.className = 'lang-block';
+    div.innerHTML = `
+      <div class="lang-left">
+        <div class="lang-flag">${flag}</div>
+        <div class="lang-name">${name}</div>
+      </div>
+      <div class="lang-right">
+        <div class="lang-phrase">${l.phrase}</div>
+        ${l.roman ? `<div class="lang-romanize">${l.roman}</div>` : ''}
+      </div>
+      <div class="copy-tick">✓</div>
+    `;
+    div.addEventListener('click', () => {
+      navigator.clipboard.writeText(l.phrase).then(() => {
+        div.classList.add('copied');
+        setTimeout(() => div.classList.remove('copied'), 1500);
+      });
+    });
+    container.appendChild(div);
+  });
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+function filterCat(cat, btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.section[data-cat]').forEach(s => {
+    if (cat === 'all' || s.dataset.cat === cat) s.classList.remove('hidden');
+    else s.classList.add('hidden');
+  });
+}
+</script>
+</body>
+</html>
