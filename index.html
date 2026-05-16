@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>旅遊求助卡</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#C8502A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="求助卡">
+<link rel="manifest" href="manifest.json">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -26,7 +29,7 @@
   }
 
   body {
-    font-family: 'Noto Sans TC', sans-serif;
+    font-family: -apple-system, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
@@ -67,7 +70,7 @@
 
   .cat-btn {
     flex-shrink: 0;
-    font-family: 'Noto Sans TC', sans-serif;
+    font-family: -apple-system, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
     font-size: 0.78rem;
     font-weight: 500;
     padding: 0.35rem 0.85rem;
@@ -259,7 +262,7 @@
     padding: 0.85rem;
     background: var(--accent);
     color: #fff;
-    font-family: 'Noto Sans TC', sans-serif;
+    font-family: -apple-system, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
     font-size: 1rem;
     font-weight: 600;
     border: none;
@@ -701,6 +704,15 @@ function filterCat(cat, btn) {
   document.querySelectorAll('.section[data-cat]').forEach(s => {
     if (cat === 'all' || s.dataset.cat === cat) s.classList.remove('hidden');
     else s.classList.add('hidden');
+  });
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('✅ 離線快取已啟用'))
+      .catch(err => console.log('SW 註冊失敗：', err));
   });
 }
 </script>
