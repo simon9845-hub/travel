@@ -1,0 +1,22 @@
+{
+  "name": "旅遊求助卡",
+  "short_name": "求助卡",
+  "description": "海外旅遊多語言求助工具",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F5F0E8",
+  "theme_color": "#C8502A",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f5fa.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f5fa.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
